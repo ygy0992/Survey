@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>알코올 사용장애 선별검사 (AUDIT-K)</title>
+    <style>
+        /* 기본 글꼴 설정 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #survey-container {
+            width: 100%;
+            max-width: 700px;
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            text-align: center;
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .question-block {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 25px;
+        }
+        
+        .question-block.gender-selector {
+             background-color: #f8f9fa;
+             padding: 20px;
+             border-radius: 8px;
+             border: 1px solid #ecf0f1;
+        }
+
+        .question-block:last-of-type {
+            border-bottom: none;
+        }
+
+        .question-block p {
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .options-list li {
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .options-list li:hover {
+            background-color: #f0f4f8;
+        }
+
+        .options-list input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        /* 버튼 공통 스타일 */
+        #submit-btn, #copy-result-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+
+        #submit-btn:hover, #copy-result-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        /* 복사 버튼 전용 스타일 */
+        #copy-result-btn {
+            background-color: #2ecc71; /* 초록색 계열 */
+            margin-top: 15px; /* 확인 버튼과의 간격 */
+        }
+
+        #copy-result-btn:hover {
+            background-color: #27ae60;
+        }
+
+        /* 결과 컨테이너 스타일 */
+        #result-container {
+            display: none; /* 초기에는 숨김 */
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 0;
+        }
+        
+        .result-score {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .result-details p {
+            text-align: left;
+            margin-bottom: 10px;
+        }
+        
+        .result-details h4 {
+            text-align: left;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+        
+        .result-details ul {
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        /* 결과 타입별 색상 */
+        .normal { background-color: #e8f4f8; border: 1px solid #a3d9e8; }
+        .hazardous { background-color: #fef5e7; border: 1px solid #f3cda4; }
+        .presumptive { background-color: #fdeded; border: 1px solid #f1b3b3; }
+    </style>
+</head>
+<body>
+
+    <div id="survey-container">
+        <h1>알코올 사용장애 선별검사 (AUDIT-K)</h1>
+        <p class="description">지난 1년을 기준으로, 각 질문에 가장 적합한 답변을 선택해 주세요.</p>
+        
+        <form id="auditk-survey-form" name="auditk_survey_results" data-netlify="true" netlify>
+            <input type="hidden" name="form-name" value="auditk_survey_results" />
+
+            <div class="question-block gender-selector">
+                <p>성별을 선택해주세요.</p>
+                <ul class="options-list">
+                    <li><label><input type="radio" name="gender" value="male" required> 남성</label></li>
+                    <li><label><input type="radio" name="gender" value="female"> 여성</label></li>
+                </ul>
+            </div>
+
+            <div class="question-block">
+                <p id="q1-text">1. 얼마나 자주 술을 마십니까?</p>
+                <ul class="options-list" data-q="1">
+                    <li><label><input type="radio" name="q1" value="0" required> ① 전혀 안마심</label></li>
+                    <li><label><input type="radio" name="q1" value="1"> ② 월 1회 이하</label></li>
+                    <li><label><input type="radio" name="q1" value="2"> ③ 월 2-4회</label></li>
+                    <li><label><input type="radio" name="q1" value="3"> ④ 주 2-3회</label></li>
+                    <li><label><input type="radio" name="q1" value="4"> ⑤ 주 4회 이상</label></li>
+                </ul>
+            </div>
+
+            <div class="question-block">
+                <p id="q2-text">2. 술을 마시는 날은 보통 몇 잔을 마십니까?</p>
+                <ul class="options-list" data-q="2">
+                    <li><label><input type="radio" name="q2" value="0" required> ① 1-2잔</label></li>
+                    <li><label><input type="radio" name="q2" value="1"> ② 3-4잔</label></li>
+                    <li><label><input type="radio" name="q2" value="2"> ③ 5-6잔</label></li>
+                    <li><label><input type="radio" name="q2" value="3"> ④ 7-9잔</label></li>
+                    <li><label><input type="radio" name="q2" value="4"> ⑤ 10잔 이상</label></li>
+                </ul>
+            </div>
+
+            <div class="question-block">
+                <p id="q3-text">3. 한번의 술좌석에서 6잔(또는 맥주 2,000cc) 이상을 마시는 횟수는 어느정도 입니까?</p>
+                <ul class="options-list" data-q="3">
+                    <li><label><input type="radio" name="q3" value="0" required> ① 없음</label></li>
+                    <li><label><input type="radio" name="q3" value="1"> ② 월 1회 미만</label></li>
+                    <li><label><input type="radio" name="q3" value="2"> ③ 월 1회</label></li>
+                    <li><label><input type="radio" name="q3" value="3"> ④ 주 1회</label></li>
+                    <li><label><input type="radio" name="q3" value="4"> ⑤ 거의 매일</label></li>
+                </ul>
+            </div>
+
+            <div class="question-block">
+                <p id="q4-text">4. 지난 1년간, 일단 술을 마시기 시작하여 자제가 안 된 적이 있습니까?</p>
+                <ul class="options-list" data-q="4">
+                    <li><label><input type="radio" name="q4" value="0" required> ① 없음</label></li>
+                    <li><label><input type="radio" name="q4" value="1"> ② 월 1회 미만</label></li>
+                    <li><label><input type="radio" name="q4" value="2"> ③ 월 1회</label></li>
+                    <li><label><input type="radio" name="q4" value="3"> ④ 주 1회</label></li>
+                    <li><label><input type="radio" name="q4" value="4"> ⑤ 거의 매일</label></li>
+                </ul>
+            </div>
+            
+            <div class="question-block">
+                <p id="q5-text">5. 지난 1년간 음주 때문에 일상 생활에 지장을 받은 적이 있습니까?</p>
+                <ul class="options-list" data-q="5">
+                    <li><label><input type="radio" name="q5" value="0" required> ① 없음</label></li>
+                    <li><label><input type="radio" name="q5" value="1"> ② 월 1회 미만</label></li>
+                    <li><label><input type="radio" name="q5" value="2"> ③ 월 1회</label></li>
+                    <li><label><input type="radio" name="q5" value="3"> ④ 주 1회</label></li>
+                    <li><label><input type="radio" name="q5" value="4"> ⑤ 거의 매일</label></li>
+                </ul>
+            </div>
+
+            <div class="question-block">
+                <p id="q6-text">6. 지난 1년간, 과음 후 다음날 아침 정신을 차리기 위해 해장술을 마신 적이 있습니까?</p>
+                <ul class="options-list" data-q="6">
+                    <li><label><input type="radio" name="q6" value="0" required> ① 없음</label></li>
+                    <li><label><input type="radio" name="q6" value="1"> ② 월 1회 미만</label></li>
+                    <li><label><input type="radio" name="q6" value="2"> ③ 월 1회</label></li>
+                    <li><label><input type="radio" name="q6" value="3"> ④ 주 1회</label></li>
+                    <li><label><input type="radio" name="q6" value="4"> ⑤ 거의 매일</label></li>
+                </ul>
+            </div>
+
+            <div class="question-block">
+                <p id="q7-text">7. 지난 1년간 음주 후에 술을 마신 것에 대해 후회한 적이 있습니까?</p>
+                <ul class="options-list" data-q="7">
+                    <li><label><input type="radio" name="q7" value="0" required> ① 없음</label></li>
+                    <li><label><input type="radio" name="q7" value="1"> ② 월 1회 미만</label></li>
+                    <li><label><input type="radio" name="q7" value="2"> ③ 월 1회</label></li>
+                    <li><label><input type="radio" name="q7" value="3"> ④ 주 1회</label></li>
+                    <li><label><input type="radio" name="q7" value="4"> ⑤ 거의 매일</label></li>
+                </ul>
+            </div>
+            
+            <div class="question-block">
+                <p id="q8-text">8. 지난 1년간, 술이 깬 후에 취중의 일을 기억할 수 없었던 적이 있습니까?</p>
+                <ul class="options-list" data-q="8">
+                    <li><label><input type="radio" name="q8" value="0" required> ① 없음</label></li>
+                    <li><label><input type="radio" name="q8" value="1"> ② 월 1회 미만</label></li>
+                    <li><label><input type="radio" name="q8" value="2"> ③ 월 1회</label></li>
+                    <li><label><input type="radio" name="q8" value="3"> ④ 주 1회</label></li>
+                    <li><label><input type="radio" name="q8" value="4"> ⑤ 거의 매일</label></li>
+                </ul>
+            </div>
+            
+            <div class="question-block">
+                <p id="q9-text">9. 당신의 음주로 인해 자신이나 다른 사람이 다친 적이 있습니까?</p>
+                <ul class="options-list" data-q="9">
+                    <li><label><input type="radio" name="q9" value="0" required> ① 없음</label></li>
+                    <li><label><input type="radio" name="q9" value="2"> ② 있지만 지난 1년간 없었음</label></li>
+                    <li><label><input type="radio" name="q9" value="4"> ③ 지난 1년간 있음</label></li>
+                </ul>
+            </div>
+            
+            <div class="question-block">
+                <p id="q10-text">10. 가족이나 의사가 당신의 음주에 대해 걱정을 하거나, 또는 술을 끊거나 줄이라는 권고를 한 적이 있습니까?</p>
+                 <ul class="options-list" data-q="10">
+                    <li><label><input type="radio" name="q10" value="0" required> ① 없음</label></li>
+                    <li><label><input type="radio" name="q10" value="2"> ② 있지만 지난 1년간 없었음</label></li>
+                    <li><label><input type="radio" name="q10" value="4"> ③ 지난 1년간 있음</label></li>
+                </ul>
+            </div>
+            
+            <button type="submit" id="submit-btn">결과 확인하기</button>
+        </form>
+
+        <div id="result-container">
+            <button id="copy-result-btn" style="display:none;">결과 복사하기</button>
+        </div>
+    </div>
+
+    <script>
+        const surveyForm = document.getElementById('auditk-survey-form');
+        const resultContainer = document.getElementById('result-container');
+        const copyResultBtn = document.getElementById('copy-result-btn');
+
+        // 폼 제출 이벤트를 가로채고 커스텀 로직 실행
+        surveyForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // 기본 폼 제출 동작 방지 (페이지 새로고침 방지)
+
+            // 성별 선택 확인
+            const selectedGenderRadio = document.querySelector('input[name="gender"]:checked');
+            if (!selectedGenderRadio) {
+                alert('성별을 선택해주세요.');
+                return;
+            }
+
+            // 모든 질문 답변 확인
+            const checkedRadios = document.querySelectorAll('input[type="radio"]:checked');
+            // 성별 포함 총 11개 라디오 버튼이 선택되어야 함
+            if (checkedRadios.length < 11) {
+                alert('모든 질문에 답변해주세요.');
+                return;
+            }
+
+            let totalScore = 0;
+            const questionRadios = document.querySelectorAll('input[type="radio"]:not([name="gender"]):checked');
+            questionRadios.forEach(radio => {
+                totalScore += parseInt(radio.value);
+            });
+
+            // Netlify Forms로 보낼 데이터 객체 초기화
+            // FormData 객체를 사용하여 폼 데이터를 쉽게 처리하고 hidden 필드를 동적으로 추가
+            const formData = new FormData(surveyForm); // 현재 폼의 모든 데이터를 포함 (gender, q1~q10)
+
+            // 추가적인 결과 데이터를 FormData에 append
+            const selectedGenderText = selectedGenderRadio.parentElement.textContent.trim();
+            formData.append('gender_text', selectedGenderText); // 성별 텍스트 (e.g., "남성")
+
+            formData.append('final_score', totalScore); // 최종 총점
+            
+            let finalResultDiagnosis = ''; // 최종 진단명
+
+            // 결과 객체 정의 (이전과 동일)
+            const results = {
+                normal: {
+                    className: 'normal',
+                    title: "정상음주군",
+                    details: `
+                        <p>현재 낮은 위험 수준의 음주 습관을 가지고 있습니다. 건강한 음주 습관을 계속 유지하시는 것이 중요합니다.</p>
+                        <h4>권고 사항</h4>
+                        <ul>
+                            <li><strong>좋은 습관 유지:</strong> 현재의 저위험 음주 습관을 꾸준히 지켜나가세요.</li>
+                            <li><strong>건강한 술자리 문화:</strong> 비음주자 또는 절주하는 분위기를 존중하고 건강한 술자리를 즐기세요.</li>
+                        </ul>
+                    `
+                },
+                hazardous: {
+                    className: 'hazardous',
+                    title: "위험음주군",
+                    details: `
+                        <p>현재의 음주 습관은 건강 문제를 일으킬 수 있는 위험 수준에 해당합니다. 음주량을 줄이기 위한 구체적인 노력이 필요하며, 이 상태가 지속될 경우 알코올 사용장애로 발전할 수 있습니다.</p>
+                        <h4>권고 사항</h4>
+                        <ul>
+                            <li><strong>목표 설정 및 음주 일지:</strong> '술 없는 날'을 정하고, 술을 얼마나 마시는지 기록하며 음주량을 조절해보세요.</li>
+                            <li><strong>절주 교육:</strong> 지역 내 중독관리지원센터 등에서 제공하는 절주 교육 프로그램 참여를 고려해보세요.</li>
+                            <li><strong>위험 상황 피하기:</strong> 과음을 유발하는 상황이나 장소를 의식적으로 피하는 것이 도움이 됩니다.</li>
+                        </ul>
+                    `
+                },
+                presumptive: {
+                    className: 'presumptive',
+                    title: "알코올 사용장애 추정군",
+                    details: `
+                        <p>알코올 의존 또는 남용 상태일 가능성이 매우 높습니다. 음주 문제가 건강과 일상생활에 심각한 영향을 미치고 있을 수 있으므로, 반드시 전문가의 평가와 도움이 필요합니다.</p>
+                        <h4>권고 사항</h4>
+                        <ul>
+                            <li><strong>전문가 상담 필수:</strong> 즉시 정신건강의학과 병·의원 또는 지역 중독관리통합지원센터를 방문하여 전문적인 평가와 상담을 받으셔야 합니다.</li>
+                            <li><strong>단주 시도:</strong> 혼자서 술을 끊기 어렵다면, 전문가의 도움을 받아 입원 치료나 약물 치료를 병행하는 것을 적극 고려해야 합니다.</li>
+                            <li><strong>전문 기관 연락처:</strong> 보건복지부 정신건강 및 알코올 문제 상담전화는 <strong>(국번없이) 1393</strong> 입니다.</li>
+                        </ul>
+                    `
+                }
+            };
+
+            let finalResult;
+            const gender = selectedGenderRadio.value;
+
+            // 성별에 따른 기준 적용
+            if (gender === 'male') {
+                if (totalScore <= 9) {
+                    finalResult = results.normal;
+                } else if (totalScore <= 19) {
+                    finalResult = results.hazardous;
+                } else {
+                    finalResult = results.presumptive;
+                }
+            } else { // female
+                if (totalScore <= 5) {
+                    finalResult = results.normal;
+                } else if (totalScore <= 9) {
+                    finalResult = results.hazardous;
+                } else {
+                    finalResult = results.presumptive;
+                }
+            }
+            finalResultDiagnosis = finalResult.title; // 최종 진단명 저장
+            formData.append('diagnosis', finalResultDiagnosis); // 최종 진단명 추가
+
+            // 각 질문의 텍스트와 선택된 답변을 수집하여 FormData에 추가
+            const answersToCopyText = []; // 복사 버튼용 텍스트 (이전과 동일)
+            answersToCopyText.push(`성별: ${selectedGenderText}`);
+
+            for (let i = 1; i <= 10; i++) {
+                const qTextElement = document.getElementById(`q${i}-text`);
+                const selectedOption = document.querySelector(`input[name="q${i}"]:checked`);
+                
+                if (selectedOption && qTextElement) {
+                    const questionText = qTextElement.textContent.trim();
+                    const answerText = selectedOption.parentElement.textContent.trim();
+                    const answerScore = selectedOption.value;
+
+                    // Netlify Forms로 보낼 개별 질문 답변 데이터 (Q1_질문, Q1_답변, Q1_점수 형태로)
+                    formData.append(`Q${i}_질문`, questionText);
+                    formData.append(`Q${i}_답변`, answerText);
+                    formData.append(`Q${i}_점수`, answerScore);
+
+                    // 복사 버튼용 텍스트에도 추가
+                    answersToCopyText.push(`${questionText} - ${answerText} (${answerScore}점)`);
+                }
+            }
+            
+            // Netlify Forms로 데이터 전송 (fetch API 사용)
+            // FormData 객체를 URLSearchParams로 변환하여 POST 요청 본문에 사용
+            fetch("/", { // Netlify는 폼 제출을 현재 경로로 POST하도록 요구
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams(formData).toString(),
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Form submission successful to Netlify!");
+                    // 설문 제출이 성공했음을 나타내는 메시지
+                    // alert('설문 결과가 성공적으로 저장되었습니다!'); // 사용자에게 보여줄 필요가 없다면 주석처리
+                } else {
+                    console.error("Form submission failed to Netlify:", response.statusText);
+                    // 설문 제출 실패 메시지
+                    // alert('설문 결과 저장에 실패했습니다. (네트워크 문제 등)'); // 사용자에게 보여줄 필요가 없다면 주석처리
+                }
+            })
+            .catch(error => {
+                console.error("Error submitting form to Netlify:", error);
+                // 네트워크 오류 등 예외 상황 처리
+                // alert('설문 결과 저장 중 오류가 발생했습니다.'); // 사용자에게 보여줄 필요가 없다면 주석처리
+            });
+
+
+            // 결과 표시 HTML 생성 (이전과 동일)
+            let resultHtml = `
+                <h2 class="result-title">결과: ${finalResult.title}</h2>
+                <p class="result-score"><strong>총점: ${totalScore}점 / 40점</strong></p>
+                <div class="result-details">${finalResult.details}</div>
+            `;
+            
+            resultContainer.className = finalResult.className;
+            resultContainer.innerHTML = resultHtml;
+            resultContainer.style.display = 'block';
+
+            resultContainer.appendChild(copyResultBtn);
+            copyResultBtn.style.display = 'block';
+
+            // 복사 버튼 클릭 이벤트 리스너 (이전과 동일)
+            copyResultBtn.onclick = function() {
+                const headerText = `[AUDIT-K 설문 결과]\n진단: ${finalResult.title}\n총점: ${totalScore}점\n\n--- 나의 응답 ---\n`;
+                const answersText = answersToCopyText.join('\n'); // 수집된 답변들을 줄바꿈으로 연결
+                const textToCopy = headerText + answersText;
+
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    alert('설문 결과가 복사되었습니다!');
+                }).catch(err => {
+                    console.error('클립보드 복사 실패:', err);
+                    alert('결과 복사에 실패했습니다. (로컬 파일 실행 시 발생할 수 있음)\n\n결과 화면의 내용을 직접 복사하여 사용해주세요.');
+                });
+            };
+
+            // 결과 영역으로 스크롤
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+
+</body>
+</html>
